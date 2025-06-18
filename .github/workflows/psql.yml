@@ -1,0 +1,22 @@
+name: psql
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  psql:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+    - uses: actions/checkout@v4
+    - run: 'PGPASSWORD=postgres psql -h localhost -p 5432 -U postgres -f circulation_logs.sql'
