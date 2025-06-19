@@ -44,10 +44,10 @@ CREATE INDEX circulation_logs_date_idx ON circulation_logs USING btree ("left"(l
 CREATE INDEX circulation_logs_items_idx_ft ON diku_mod_audit.circulation_logs USING gin (get_tsvector(f_unaccent(jsonb ->> 'items'::text)));
 
 INSERT INTO diku_mod_audit.circulation_logs values (
-  md5(generate_Series(1, 3000000)::text)::uuid,
+  md5(generate_Series(1, 9000000)::text)::uuid,
   jsonb_build_object(
-    'date', generate_series(1, 3000000)::text,
-    'items', jsonb_build_array(jsonb_build_object('itemBarcode', generate_series(1, 3000000)::text))));
+    'date', generate_series(1, 9000000)::text,
+    'items', jsonb_build_array(jsonb_build_object('itemBarcode', generate_series(1, 9000000)::text))));
 
 SET LOCAL enable_indexscan = OFF;
 EXPLAIN ANALYSE
