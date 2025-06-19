@@ -49,6 +49,8 @@ INSERT INTO diku_mod_audit.circulation_logs values (
     'date', generate_series(1, 9000000)::text,
     'items', jsonb_build_array(jsonb_build_object('itemBarcode', generate_series(1, 9000000)::text))));
 
+SELECT COUNT(*) FROM diku_mod_audit.circulation_logs;
+
 SET enable_indexscan = OFF;
 EXPLAIN ANALYSE
     select jsonb from diku_mod_audit.circulation_logs 
