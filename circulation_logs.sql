@@ -49,7 +49,7 @@ INSERT INTO diku_mod_audit.circulation_logs values (
     'date', generate_series(1, 9000000)::text,
     'items', jsonb_build_array(jsonb_build_object('itemBarcode', generate_series(1, 9000000)::text))));
 
-SET LOCAL enable_indexscan = OFF;
+SET enable_indexscan = OFF;
 EXPLAIN ANALYSE
     select jsonb from diku_mod_audit.circulation_logs 
     WHERE get_tsvector(f_unaccent(circulation_logs.jsonb->>'items')) @@ tsquery_phrase(f_unaccent('ITEM_BARCODE_256069'))
