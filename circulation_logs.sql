@@ -43,11 +43,32 @@ CREATE INDEX circulation_logs_date_idx ON circulation_logs USING btree ("left"(l
 
 CREATE INDEX circulation_logs_items_idx_ft ON diku_mod_audit.circulation_logs USING gin (get_tsvector(f_unaccent(jsonb ->> 'items'::text)));
 
-INSERT INTO diku_mod_audit.circulation_logs values (
-  md5(generate_Series(1, 9000000)::text)::uuid,
+INSERT INTO diku_mod_audit.circulation_logs (id, jsonb)
+SELECT
+  gen_random_uuid(),
   jsonb_build_object(
-    'date', generate_series(1, 9000000)::text,
-    'items', jsonb_build_array(jsonb_build_object('itemBarcode', generate_series(1, 9000000)::text))));
+    'id', gen_random_uuid(),
+    'date', to_char(now() - (gs || ' seconds')::interval, 'YYYY-MM-DD"T"HH24:MI:SS.MS+00:00'),
+    'items', jsonb_build_array(
+      jsonb_build_object(
+        'itemId', gen_random_uuid(),
+        'holdingId', gen_random_uuid(),
+        'instanceId', gen_random_uuid(),
+        'itemBarcode', gen_random_uuid() || '_KAPIL_ITEM_BARCODE_' || gs
+      )
+    ),
+    'action', 'Created',
+    'object', 'Request',
+    'source', 'ADMINISTRATOR, Diku_admin',
+    'linkToIds', jsonb_build_object(
+      'userId', gen_random_uuid(),
+      'requestId', gen_random_uuid()
+    ),
+    'description', 'Type: Page.',
+    'userBarcode', gen_random_uuid() || 'USER_BARCODE_' || (100000 + gs),
+    'servicePointId', 'fecf64fc-b8d0-4c8b-a7fe-6bb941ee8914'
+  )
+FROM generate_series(1, 9000000) AS gs;
 
 SELECT COUNT(*) FROM diku_mod_audit.circulation_logs;
 
@@ -72,3 +93,26 @@ EXPLAIN ANALYSE
     ORDER BY left(lower(f_unaccent(circulation_logs.jsonb->>'date')),600) DESC, lower(f_unaccent(circulation_logs.jsonb->>'date')) DESC
     LIMIT 10
     OFFSET 0;
+
+EXPLAIN ANALYSE
+    select jsonb from diku_mod_audit.circulation_logs 
+    WHERE get_tsvector(f_unaccent(circulation_logs.jsonb->>'items')) @@ tsquery_phrase(f_unaccent('ITEM_BARCODE_256069'))
+    ORDER BY left(lower(f_unaccent(circulation_logs.jsonb->>'date')),600) DESC, lower(f_unaccent(circulation_logs.jsonb->>'date')) DESC
+    LIMIT 5000
+    OFFSET 7000;
+
+
+EXPLAIN ANALYSE
+    select jsonb from diku_mod_audit.circulation_logs 
+    WHERE get_tsvector(f_unaccent(circulation_logs.jsonb->>'items')) @@ tsquery_phrase(f_unaccent('ITEM_BARCODE_256069'))
+    ORDER BY left(lower(f_unaccent(circulation_logs.jsonb->>'date')),600) DESC, lower(f_unaccent(circulation_logs.jsonb->>'date')) DESC
+    LIMIT 12304
+    OFFSET 12000;
+
+
+EXPLAIN ANALYSE
+    select jsonb from diku_mod_audit.circulation_logs 
+    WHERE get_tsvector(f_unaccent(circulation_logs.jsonb->>'items')) @@ tsquery_phrase(f_unaccent('ITEM_BARCODE_256069'))
+    ORDER BY left(lower(f_unaccent(circulation_logs.jsonb->>'date')),600) DESC, lower(f_unaccent(circulation_logs.jsonb->>'date')) DESC
+    LIMIT 13000
+    OFFSET 300000;
